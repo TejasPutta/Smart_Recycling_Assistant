@@ -218,3 +218,35 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ============================================================
+# Smart Recycling Assistant - project-specific rules
+# (Appended by Stage 1 setup; do not duplicate this block.)
+# ============================================================
+
+# Uploaded images and temporary pipeline files
+backend/storage/*
+!backend/storage/.gitkeep
+backend/tmp/
+backend/uploads/
+*.tmp
+
+# AI model weights and large binaries (never commit)
+*.pt
+*.pth
+*.onnx
+*.h5
+*.tflite
+*.safetensors
+models/
+weights/
+
+# Logs
+logs/
+*.log
+
+# Local SQLite database files (dev only)
+*.db
+*.sqlite
+*.sqlite3
+backend/*.db
