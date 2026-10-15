@@ -1,0 +1,43 @@
+.droplet-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.droplet {
+  position: absolute;
+  top: 0;
+  fill: #4dffd2;
+  filter: drop-shadow(0 0 8px rgba(77, 255, 210, 0.85));
+  animation: droplet-fall 1.5s cubic-bezier(0.4, 0, 0.9, 0.7) both;
+}
+.droplet-shine { fill: rgba(255, 255, 255, 0.65); }
+
+.droplet-toast {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  padding: 0.3rem 1.2rem;
+  font-family: var(--font-main);
+  font-size: clamp(2.6rem, 8vw, 4rem);
+  line-height: 1;
+  color: #4dffd2;
+  text-shadow: 0 0 10px rgba(77, 255, 210, 0.9), 0 0 30px rgba(77, 255, 210, 0.45);
+  transform: translateX(-50%);
+  animation: toast-pop 2.6s ease both;
+}
+
+@keyframes droplet-fall {
+  0% { transform: translate(0, -12vh) scale(0.6); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translate(var(--dx), 70vh) scale(1); opacity: 0; }
+}
+@keyframes toast-pop {
+  0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+  14% { transform: translateX(-50%) scale(1.12); opacity: 1; }
+  24% { transform: translateX(-50%) scale(1); }
+  80% { transform: translateX(-50%) translateY(0); opacity: 1; }
+  100% { transform: translateX(-50%) translateY(-30px); opacity: 0; }
+}

@@ -1,0 +1,38 @@
+.tree-figure { margin: 0; text-align: center; }
+.tree-svg { display: block; width: 100%; max-width: 380px; margin: 0 auto; overflow: visible; }
+
+.tree-ground { fill: none; stroke: var(--green-dim); stroke-width: 2; stroke-linecap: round; }
+.tree-ground-glow { fill: rgba(57, 255, 20, 0.08); }
+
+.tree-trunk {
+  fill: #0a2410;
+  stroke: var(--green);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 5px var(--green-glow));
+}
+.tree-branch { fill: none; stroke: var(--green); stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--green-glow)); }
+
+.tree-canopy-outline circle { fill: #031a08; stroke: var(--green); stroke-width: 4; }
+.tree-canopy-outline { filter: drop-shadow(0 0 7px var(--green-glow)); }
+.tree-canopy-fill circle { fill: #031a08; stroke: none; }
+
+.tree-fruit { fill: #4dffd2; filter: drop-shadow(0 0 7px rgba(77, 255, 210, 0.9)); animation: fruit-pulse 2.2s ease-in-out infinite; }
+
+.tree-grow { transform-origin: 150px 300px; animation: tree-grow 0.9s var(--ease-pop) both; }
+.tree-sway { transform-origin: 150px 300px; animation: tree-sway 6s ease-in-out infinite; }
+
+.tree-caption { margin-top: 6px; font-size: 2rem; color: var(--green); text-shadow: 0 0 8px var(--green-glow); }
+
+@keyframes tree-grow {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes tree-sway {
+  0%, 100% { transform: rotate(-1.1deg); }
+  50% { transform: rotate(1.1deg); }
+}
+@keyframes fruit-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}

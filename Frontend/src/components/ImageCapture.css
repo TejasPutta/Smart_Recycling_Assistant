@@ -1,0 +1,25 @@
+/* Label sits inside the top of the tracking frame so it never clips on small screens. */
+.tracking-frame .tf-label {
+  top: 10px;
+  transform: translateX(-50%);
+}
+
+.live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  background: var(--red);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--red);
+  animation: loader-blink 1s ease-in-out infinite;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
