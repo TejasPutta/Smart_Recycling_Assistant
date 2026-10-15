@@ -9,7 +9,7 @@ via the `.env` file or real environment variables — never hardcoded.
 from functools import lru_cache
 from typing import List
 
-from pydantic import Field, field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,13 +35,13 @@ class Settings(BaseSettings):
     port: int = Field(default=8000)
 
     # ---------- CORS ----------
-    cors_origins: List[str] = Field(
-        default_factory=lambda: [
-            "http://localhost:5173",
-            "http://localhost:3000",
-            "http://127.0.0.1:5173",
-            "http://127.0.0.1:3000",
-        ]
+    # Stored as a comma-separated string; access via `.cors_origins` property.
+    cors_origins_raw: str = Field(
+        default=(
+            "http://localhost:5173,http://localhost:3000,"
+            "http://127.0.0.1:5173,http://127.0.0.1:3000"
+        ),
+        alias="CORS_ORIGINS",
     )
 
     # ---------- Database (used from Stage 5) ----------
@@ -57,24 +57,25 @@ class Settings(BaseSettings):
 
     # ---------- Uploads (used from Stage 3) ----------
     max_upload_size_mb: int = Field(default=8)
-    allowed_image_types: List[str] = Field(
-        default_factory=lambda: ["image/jpeg", "image/png", "image/webp"]
+    allowed_image_types_raw: str = Field(
+        default="image/jpeg,image/png,image/webp",
+        alias="ALLOWED_IMAGE_TYPES",
     )
 
-    # ---------- Validators ----------
-    @field_validator("cors_origins", mode="before")
-    @classmethod
-    def _split_cors_origins(cls, value):
-        if isinstance(value, str):
-            return [item.strip() for item in value.split(",") if item.strip()]
-        return value
+    # ---------- Convenience properties ----------
+    @property
+    def cors_origins(self) -> List[str]:
+        """Return CORS origins as a clean list of strings."""
+        return [item.strip() for item in self.cors_origins_raw.split(",") if item.strip()]
 
-    @field_validator("allowed_image_types", mode="before")
-    @classmethod
-    def _split_allowed_types(cls, value):
-        if isinstance(value, str):
-            return [item.strip() for item in value.split(",") if item.strip()]
-        return value
+    @property
+    def allowed_image_types(self) -> List[str]:
+        """Return allowed MIME types as a clean list of strings."""
+        return [
+            item.strip()
+            for item in self.allowed_image_types_raw.split(",")
+            if item.strip()
+        ]
 
 
 @lru_cache

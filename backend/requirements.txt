@@ -1,0 +1,24 @@
+# ============================================================
+# Smart Recycling Assistant - Backend Dependencies
+# Stage 1 foundation. Later stages append their own deps.
+# ============================================================
+
+# ---------- Web framework ----------
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# ---------- Settings / validation ----------
+# NOTE: pydantic >= 2.13 is required for Python 3.14 wheels
+pydantic==2.13.4
+pydantic-settings==2.5.2
+
+# ---------- Environment variables ----------
+python-dotenv==1.0.1
+
+# ---------- Testing ----------
+pytest==8.3.3
+pytest-asyncio==0.24.0
+httpx==0.27.2
+
+# ---------- Multipart uploads (needed from Stage 3) ----------
+python-multipart==0.0.12
