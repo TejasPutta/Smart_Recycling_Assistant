@@ -1,0 +1,1 @@
+"""Recycling guidance services (Gemini + local fallback)."""
