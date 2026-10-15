@@ -14,6 +14,7 @@ from app.api.routes import classification as classification_routes
 from app.api.routes import guidance as guidance_routes
 from app.api.routes import health as health_routes
 from app.api.routes import history as history_routes
+from app.api.routes import rewards as rewards_routes
 from app.api.routes import statistics as statistics_routes
 from app.core.config import get_settings
 from app.database.connection import init_db
@@ -49,6 +50,7 @@ app.include_router(history_routes.router, prefix=settings.api_v1_prefix)
 app.include_router(guidance_routes.router, prefix=settings.api_v1_prefix)
 app.include_router(statistics_routes.router, prefix=settings.api_v1_prefix)
 app.include_router(bins_routes.router, prefix=settings.api_v1_prefix)
+app.include_router(rewards_routes.router, prefix=settings.api_v1_prefix)
 
 
 # ---------- Startup ----------
