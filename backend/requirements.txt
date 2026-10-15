@@ -30,3 +30,6 @@ Pillow==10.4.0
 #   pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cpu
 torch==2.4.1
 torchvision==0.19.1
+
+# ---------- Database (Stage 3) ----------
+SQLAlchemy==2.0.35

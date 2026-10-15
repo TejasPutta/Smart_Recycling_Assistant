@@ -9,6 +9,7 @@ from app.api.routes import health as health_routes
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from app.api.routes import history as history_routes
 
 from app.api.routes import health as health_routes
 from app.core.config import get_settings
@@ -28,6 +29,13 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
+from app.database.connection import init_db
+
+@app.on_event("startup")
+def _startup_init_db() -> None:
+    """Ensure tables exist before serving requests."""
+    init_db()
+
 # ---------- CORS ----------
 # Allow the separately-hosted frontend (Mayank's app) to call this API.
 app.add_middleware(
@@ -40,14 +48,9 @@ app.add_middleware(
 
 # ---------- Routers ----------
 # ---------- Routers ----------
-app.include_router(
-    health_routes.router,
-    prefix=settings.api_v1_prefix,
-)
-app.include_router(
-    classification_routes.router,
-    prefix=settings.api_v1_prefix,
-)
+app.include_router(health_routes.router, prefix=settings.api_v1_prefix)
+app.include_router(classification_routes.router, prefix=settings.api_v1_prefix)
+app.include_router(history_routes.router, prefix=settings.api_v1_prefix)
 
 
 # ---------- Root endpoint ----------
