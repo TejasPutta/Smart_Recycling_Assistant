@@ -33,3 +33,6 @@ torchvision==0.19.1
 
 # ---------- Database (Stage 3) ----------
 SQLAlchemy==2.0.35
+
+# ---------- Generative AI (Stage 4) ----------
+google-genai==1.7.0
