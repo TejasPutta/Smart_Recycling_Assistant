@@ -23,7 +23,7 @@ Smart_Recycling_Assistant/
 ## Tech stack
 
 - **Backend:** Python 3.10, FastAPI, SQLAlchemy, SQLite
-- **AI classification:** MobileNetV3-Large (ImageNet pretrained, CPU inference)
+- **AI classification:** CLIP ViT-B/32 (OpenAI, zero-shot against 8 waste-category text prompts, CPU inference)
 - **Generative guidance:** Google Gemini (`google-genai` SDK, optional)
 - **Testing:** pytest + FastAPI TestClient
 
@@ -107,5 +107,5 @@ Expected: all tests pass. The suite uses an in-memory SQLite for rewards tests a
 
 - **Bins are virtual.** They are derived from confirmed scans, not from physical sensors or IoT hardware.
 - **Gemini is optional.** Without an API key, `/api/v1/guidance` returns locally-generated guidance clearly labeled `source: "fallback"`.
-- **Classification uses ImageNet classes.** MobileNetV3 predicts generic object classes (e.g. "water bottle", "newspaper"). Labels are mapped to our 8 normalized waste categories via a deterministic keyword table. This is not a purpose-trained waste model.
+- **Classification is zero-shot.** CLIP compares each uploaded image against 8 natural-language descriptions of our waste categories. No waste-specific training data was used. A purpose-trained waste classifier is our next step.
 - **No authentication.** All endpoints are public and designed for a single-user demo.
