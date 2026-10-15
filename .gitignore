@@ -238,7 +238,6 @@ backend/uploads/
 *.h5
 *.tflite
 *.safetensors
-models/
 weights/
 
 # Logs
