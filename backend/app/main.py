@@ -4,7 +4,8 @@ FastAPI application entrypoint for Smart Recycling Assistant.
 Run in development:
     uvicorn app.main:app --reload
 """
-
+from app.api.routes import classification as classification_routes
+from app.api.routes import health as health_routes
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -38,8 +39,13 @@ app.add_middleware(
 )
 
 # ---------- Routers ----------
+# ---------- Routers ----------
 app.include_router(
     health_routes.router,
+    prefix=settings.api_v1_prefix,
+)
+app.include_router(
+    classification_routes.router,
     prefix=settings.api_v1_prefix,
 )
 
