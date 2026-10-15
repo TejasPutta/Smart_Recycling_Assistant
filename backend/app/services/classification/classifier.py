@@ -21,7 +21,6 @@ from typing import Optional
 from PIL import Image
 from torch import Tensor, no_grad
 from torchvision.models import MobileNet_V3_Large_Weights, mobilenet_v3_large
-from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
 
 from app.schemas.classification import (
     ClassificationPrediction,
@@ -41,20 +40,14 @@ _load_error: Optional[str] = None
 _load_lock = threading.Lock()
 
 
-def _build_transform(weights: MobileNet_V3_Large_Weights) -> Compose:
-    """Standard preprocessing pipeline matching the pretrained weights."""
-    return Compose(
-        [
-            Resize(256),
-            CenterCrop(224),
-            ToTensor(),
-            Normalize(
-                mean=weights.meta["mean"],
-                std=weights.meta["std"],
-            ),
-        ]
-    )
+def _build_transform(weights: MobileNet_V3_Large_Weights):
+    """
+    Return the preprocessing pipeline that matches the given pretrained weights.
 
+    torchvision's `weights.transforms()` bundles Resize, CenterCrop, ToTensor,
+    and Normalize with the correct mean/std for that specific checkpoint.
+    """
+    return weights.transforms()
 
 def _load_model_once() -> None:
     """Lazy, thread-safe, one-time model load. Stores error if it fails."""
