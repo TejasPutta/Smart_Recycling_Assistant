@@ -15,8 +15,10 @@ Smart_Recycling_Assistant/
 
 | Member | Responsibility |
 |--------|----------------|
-| TejasPutta | Backend, AI integration, database, APIs, integration |
-| Mayank-Raj9339 | Frontend |
+| TejasPutta | Backend, AI integration, database, APIs |
+| Mayank-Raj9339 | Frontend & UI|
+| ashishdas777979-cpu | Product support, research assistance & testing |
+| rajadarsh2772-byte | Product support, research assistance & testing |
 
 ## Tech stack
 
