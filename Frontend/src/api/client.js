@@ -28,7 +28,7 @@ function readDetail(body, fallback) {
   return fallback;
 }
 
-async function request(path, { method = "GET", body, form, timeoutMs = 15000 } = {}) {
+async function request(path, { method = "GET", body, form, timeoutMs = 120000 } = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -116,7 +116,7 @@ export const getGuidance = ({ label, category, confidence }) =>
   request("/guidance", {
     method: "POST",
     body: { label, category, confidence },
-    timeoutMs: 30000, // Gemini can take a few seconds
+    timeoutMs: 120000,  // 120 seconds — model can be slow on first call // Gemini can take a few seconds
   });
 
 // ---------- History ----------

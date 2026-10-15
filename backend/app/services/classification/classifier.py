@@ -1,16 +1,4 @@
-"""
-Waste classifier service.
-
-Wraps a real pretrained image classifier (MobileNetV3-Large on ImageNet)
-and maps its output labels to our normalized waste categories.
-
-Key properties:
-- Model is loaded once per process (module-level lazy singleton).
-- Weights are downloaded on first use into the PyTorch cache (~/.cache/torch).
-- If the model cannot be loaded, we return a clearly-labeled DEMO result
-  rather than silently faking a prediction.
-- Thread-safe enough for FastAPI's default worker model.
-"""
+"""Waste classifier service — zero-shot with CLIP."""
 
 from __future__ import annotations
 
@@ -19,127 +7,109 @@ import threading
 from typing import Optional
 
 from PIL import Image
-from torch import Tensor, no_grad
-from torchvision.models import MobileNet_V3_Large_Weights, mobilenet_v3_large
+from torch import no_grad
 
 from app.schemas.classification import (
     ClassificationPrediction,
     ClassificationSource,
     WasteCategory,
 )
-from app.services.classification.category_mapper import map_label_to_category
+from app.services.classification.category_mapper import all_category_infos
 
 logger = logging.getLogger(__name__)
 
-MODEL_NAME = "mobilenet_v3_large_imagenet"
+MODEL_NAME = "clip_vit_base_patch32_zeroshot"
 DEFAULT_TOP_K = 3
 
+CATEGORY_PROMPTS = {
+    WasteCategory.BATTERY:        "a battery or power bank",
+    WasteCategory.HAZARDOUS:      "a syringe, aerosol can, light bulb, or electronic circuit",
+    WasteCategory.CHEMICAL:       "a chemical container, detergent, paint, or motor oil bottle",
+    WasteCategory.PLASTIC:        "a plastic bottle, bag, or container",
+    WasteCategory.PAPER:          "paper, newspaper, cardboard, or magazine",
+    WasteCategory.FABRIC:         "clothing, textile, shoe, or fabric",
+    WasteCategory.BIODEGRADABLE:  "food scraps, fruit, vegetable, or leaves",
+    WasteCategory.OTHER:          "general trash or an unknown object",
+}
+
+_CATEGORY_INFO_CACHE = {info.category: info for info in all_category_infos()}
+
 _model = None
-_weights = None
+_processor = None
 _load_error: Optional[str] = None
 _load_lock = threading.Lock()
 
 
-def _build_transform(weights: MobileNet_V3_Large_Weights):
-    """
-    Return the preprocessing pipeline that matches the given pretrained weights.
-
-    torchvision's `weights.transforms()` bundles Resize, CenterCrop, ToTensor,
-    and Normalize with the correct mean/std for that specific checkpoint.
-    """
-    return weights.transforms()
-
 def _load_model_once() -> None:
-    """Lazy, thread-safe, one-time model load. Stores error if it fails."""
-    global _model, _weights, _load_error
+    global _model, _processor, _load_error
     if _model is not None or _load_error is not None:
         return
-
     with _load_lock:
         if _model is not None or _load_error is not None:
             return
         try:
-            _weights = MobileNet_V3_Large_Weights.IMAGENET1K_V2
-            _model = mobilenet_v3_large(weights=_weights)
+            from transformers import CLIPModel, CLIPProcessor
+            _processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+            _model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
             _model.eval()
             logger.info("Loaded classifier: %s", MODEL_NAME)
-        except Exception as exc:  # pragma: no cover - depends on environment
+        except Exception as exc:
             _load_error = f"{type(exc).__name__}: {exc}"
-            logger.warning("Classifier unavailable, demo mode: %s", _load_error)
+            logger.warning("Classifier unavailable: %s", _load_error)
 
 
 def is_model_available() -> bool:
-    """True if the real model can be used right now."""
     _load_model_once()
     return _model is not None
 
 
 def get_load_error() -> Optional[str]:
-    """Return the load error message if any (for diagnostics)."""
     _load_model_once()
     return _load_error
 
 
-def _demo_predictions() -> list[ClassificationPrediction]:
-    """
-    Honest fallback: return a single 'other' prediction labeled low-confidence.
-
-    This does NOT guess. It clearly says "we don't know" and the API marks
-    the response source as DEMO.
-    """
-    info = map_label_to_category("")  # -> 'other' info
-    return [
-        ClassificationPrediction(
-            label="unknown (model not loaded)",
-            category=info.category,
-            confidence=0.0,
-            category_info=info,
-        )
-    ]
+def _demo_predictions():
+    info = _CATEGORY_INFO_CACHE[WasteCategory.OTHER]
+    return [ClassificationPrediction(
+        label="unknown (model not loaded)",
+        category=info.category,
+        confidence=0.0,
+        category_info=info,
+    )]
 
 
-def classify_image(
-    image: Image.Image,
-    top_k: int = DEFAULT_TOP_K,
-) -> tuple[list[ClassificationPrediction], ClassificationSource, Optional[str]]:
-    """
-    Run inference on a PIL image.
-
-    Returns:
-        (predictions, source, note)
-        - predictions: list of ClassificationPrediction, highest confidence first
-        - source: ClassificationSource.MODEL or .DEMO
-        - note: extra context (e.g. demo reason), else None
-    """
+def classify_image(image: Image.Image, top_k: int = DEFAULT_TOP_K):
     _load_model_once()
 
-    if _model is None:
-        note = "Classifier unavailable on this machine; returning demo result."
+    if _model is None or _processor is None:
+        note = "Classifier unavailable; demo result."
         if _load_error:
             note = f"{note} Reason: {_load_error}"
         return _demo_predictions(), ClassificationSource.DEMO, note
 
-    transform = _build_transform(_weights)
-    tensor: Tensor = transform(image).unsqueeze(0)  # add batch dim
+    categories = list(CATEGORY_PROMPTS.keys())
+    prompts = [CATEGORY_PROMPTS[c] for c in categories]
 
+    inputs = _processor(
+        text=prompts,
+        images=image.convert("RGB"),
+        return_tensors="pt",
+        padding=True,
+    )
     with no_grad():
-        logits = _model(tensor)
-        probs = logits.softmax(dim=-1)[0]
+        probs = _model(**inputs).logits_per_image.softmax(dim=1)[0]
 
-    top_probs, top_idx = probs.topk(min(top_k, probs.shape[0]))
-    categories = _weights.meta["categories"]
+    k = min(top_k, len(categories))
+    top_probs, top_idx = probs.topk(k)
 
-    predictions: list[ClassificationPrediction] = []
+    predictions = []
     for prob, idx in zip(top_probs.tolist(), top_idx.tolist()):
-        raw_label = categories[idx]
-        category_info = map_label_to_category(raw_label)
-        predictions.append(
-            ClassificationPrediction(
-                label=raw_label,
-                category=category_info.category,
-                confidence=round(float(prob), 4),
-                category_info=category_info,
-            )
-        )
-
+        category = categories[int(idx)]
+        info = _CATEGORY_INFO_CACHE[category]
+        predictions.append(ClassificationPrediction(
+            label=info.display_name,
+            category=category,
+            confidence=round(float(prob), 4),
+            category_info=info,
+        ))
     return predictions, ClassificationSource.MODEL, None

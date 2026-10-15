@@ -21,9 +21,19 @@ from app.database.connection import init_db
 
 settings = get_settings()
 
+from contextlib import asynccontextmanager
+from app.services.classification.classifier import _load_model_once
+
+
+@asynccontextmanager
+async def lifespan(app):
+    _load_model_once()  # pre-load model at startup
+    yield
+
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
+    lifespan=lifespan,
     description=(
         "Backend API for the Smart Recycling Assistant hackathon project. "
         "Provides waste classification, scanning, guidance, disposal history, "
@@ -75,3 +85,4 @@ async def root() -> JSONResponse:
             "health": f"{settings.api_v1_prefix}/health",
         }
     )
+

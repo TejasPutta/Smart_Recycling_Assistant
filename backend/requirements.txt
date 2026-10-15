@@ -36,3 +36,6 @@ SQLAlchemy==2.0.35
 
 # ---------- Generative AI (Stage 4) ----------
 google-genai==1.7.0
+
+# ---------- Zero-shot classifier (Stage 2, updated) ----------
+transformers==4.45.2
