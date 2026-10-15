@@ -1,0 +1,65 @@
+.bin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 14px;
+}
+
+.bin-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  transition: transform 0.2s var(--ease-pop), box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.bin-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--green);
+  box-shadow: 0 0 22px rgba(57, 255, 20, 0.18);
+}
+
+.bin-visual { flex: none; width: 66px; }
+.bin-lid {
+  width: 78px;
+  height: 9px;
+  margin-left: -6px;
+  background: var(--panel-solid);
+  border: 2px solid var(--green-dim);
+  border-radius: 5px;
+}
+.bin-body {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 92px;
+  overflow: hidden;
+  background: #020a04;
+  border: 2px solid var(--green-dim);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+}
+.bin-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--fill);
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--bin-color) 75%, transparent),
+    color-mix(in srgb, var(--bin-color) 30%, transparent)
+  );
+  box-shadow: 0 -2px 12px var(--bin-color);
+  animation: bin-rise 0.9s var(--ease-pop) both;
+}
+.bin-icon { position: relative; z-index: 1; font-size: 1.6rem; }
+
+.bin-info { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+.bin-pct { font-size: 2.6rem; line-height: 1; color: var(--text); }
+
+@keyframes bin-rise {
+  from { height: 0; }
+  to { height: var(--fill); }
+}
